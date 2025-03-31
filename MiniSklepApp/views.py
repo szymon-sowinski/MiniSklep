@@ -1,3 +1,14 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from .models import Product
 
-# Create your views here.
+def add_product(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        price = request.POST.get('price')
+
+        if name:
+            Product.objects.create(name=name, price=price)
+            return redirect('/add_product/')
+
+    products = Product.objects.all()
+    return render(request, 'add_product.html', {'products': products})
