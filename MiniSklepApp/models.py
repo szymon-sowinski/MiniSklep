@@ -5,4 +5,4 @@ class Product(models.Model):
     price = models.FloatField()
     
     def __str__(self):
-        return self.name, self.price
+        return f"{self.name} - {self.price} zł"
