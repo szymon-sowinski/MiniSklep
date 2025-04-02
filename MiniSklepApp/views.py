@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from .models import Product
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
 def login_view(request):
     if request.method == 'POST':
@@ -41,3 +43,14 @@ def add_product(request):
 def display_products(request):
     products = Product.objects.all()
     return render(request, 'display_products.html', {'products': products})
+
+@csrf_exempt
+def update_product(request):
+    if request.method == "POST":
+        try:
+            product = Product.objects.get(id=request.POST["id"])
+            setattr(product, request.POST["field"], request.POST["value"])
+            product.save()
+            return HttpResponse("success")
+        except Exception:
+            return HttpResponse("error")

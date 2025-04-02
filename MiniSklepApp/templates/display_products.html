@@ -40,9 +40,9 @@
                 </thead>
                 <tbody>
                     {% for product in products %}
-                    <tr>
-                        <td>{{ product.name }}</td>
-                        <td>{{ product.price }} zł</td>
+                    <tr data-id="{{ product.id }}">
+                        <td contenteditable="true" class="editable" data-field="name">{{ product.name }}</td>
+                        <td contenteditable="true" class="editable" data-field="price">{{ product.price }} zł</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -50,5 +50,31 @@
         </div>
     </div>
 </body>
-
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll(".editable").forEach(cell => {
+            cell.addEventListener("blur", function() {
+                let row = this.closest("tr");
+                let productId = row.getAttribute("data-id");
+                let field = this.getAttribute("data-field");
+                let value = this.innerText.replace(" zł", ""); 
+    
+                let formData = new FormData();
+                formData.append("id", productId);
+                formData.append("field", field);
+                formData.append("value", value);
+    
+                fetch("{% url 'update_product' %}", {
+                    method: "POST",
+                    body: formData
+                }).then(response => response.text())
+                  .then(data => {
+                      if (data !== "success") {
+                          alert("Błąd podczas zapisu!");
+                      }
+                  });
+            });
+        });
+    });
+    </script>     
 </html>
