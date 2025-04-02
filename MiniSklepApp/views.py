@@ -41,8 +41,3 @@ def add_product(request):
 def display_products(request):
     products = Product.objects.all()
     return render(request, 'display_products.html', {'products': products})
-
-
-def logout_view(request):
-    logout(request)
-    return redirect('/login/')
