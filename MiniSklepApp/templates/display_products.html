@@ -41,8 +41,12 @@
                 <tbody>
                     {% for product in products %}
                     <tr data-id="{{ product.id }}">
-                        <td contenteditable="true" class="editable w-75" data-field="name">{{ product.name }}</td>
-                        <td contenteditable="true" class="editable w-25" data-field="price">{{ product.price }} zł</td>
+                        <td contenteditable="true" class="editable w-60" data-field="name">{{ product.name }}</td>
+                        <td contenteditable="true" class="editable w-15" data-field="price">{{ product.price }} zł</td>
+                        <td class="w-25">
+                            <a href="{% url 'delete_product' product.id %}" class="btn btn-danger">Usuń</a>
+                        </td>
+                        
                     </tr>
                     {% endfor %}
                 </tbody>

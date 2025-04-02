@@ -54,3 +54,11 @@ def update_product(request):
             return HttpResponse("success")
         except Exception:
             return HttpResponse("error")
+
+def delete_product(request, product_id):
+    try:
+        product = Product.objects.get(id=product_id)
+        product.delete()
+        return redirect('display_products') 
+    except Product.DoesNotExist:
+        return redirect('display_products')
