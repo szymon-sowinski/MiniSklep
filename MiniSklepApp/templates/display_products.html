@@ -55,7 +55,7 @@
                         <td contenteditable="true" class="editable w-60" data-field="name">{{ product.name }}</td>
                         <td contenteditable="true" class="editable w-15" data-field="price">{{ product.price }} zł</td>
                         <td class="w-25">
-                            <a href="{% url 'delete_product' product.id %}" class="btn btn-danger">Usuń</a>
+                            <button class="btn btn-danger delete-product" data-id="{{ product.id }}">Usuń</button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -164,6 +164,43 @@
                         });
                 });
             });
+
+            document.querySelectorAll(".delete-product").forEach(button => {
+                button.addEventListener("click", function () {
+                    let productId = this.getAttribute("data-id");
+                    document.getElementById("delete-message").textContent = "Czy na pewno chcesz usunąć ten produkt?";
+
+                    const modal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
+                    modal.show();
+
+                    // Używamy funkcji "handler", aby potem móc usunąć zdarzenie i uniknąć wielokrotnego wywoływania
+                    function handler() {
+                        // Tworzymy URL na podstawie placeholdera 0
+                        let deleteUrl = "{% url 'delete_product' 0 %}";
+                        deleteUrl = deleteUrl.replace("0", productId);
+
+                        fetch(deleteUrl, {
+                            method: "POST",
+                            headers: {
+                                "X-CSRFToken": "{{ csrf_token }}"
+                            }
+                        }).then(response => response.text())
+                            .then(data => {
+                                if (data === "success") {
+                                    document.querySelector(`tr[data-id='${productId}']`).remove();
+                                } else {
+                                    alert("Błąd podczas usuwania!");
+                                }
+                                modal.hide();
+                                // Usuwamy zdarzenie, by uniknąć wielokrotnych wywołań
+                                document.getElementById("confirm-delete").removeEventListener("click", handler);
+                            });
+                    }
+
+                    document.getElementById("confirm-delete").addEventListener("click", handler);
+                });
+            });
+
 
             deleteAllButton.addEventListener("click", function (event) {
                 event.preventDefault();

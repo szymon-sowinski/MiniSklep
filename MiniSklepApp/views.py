@@ -60,12 +60,14 @@ def update_product(request):
             return HttpResponse("error")
 
 def delete_product(request, product_id):
-    try:
-        product = Product.objects.get(id=product_id)
-        product.delete()
-        return redirect('display_products') 
-    except Product.DoesNotExist:
-        return redirect('display_products')
+    if request.method == "POST":
+        try:
+            product = Product.objects.get(id=product_id)
+            product.delete()
+            return HttpResponse("success")
+        except Product.DoesNotExist:
+            return HttpResponse("error")
+    return HttpResponse("error")
     
 @csrf_exempt
 def delete_selected_products(request):
