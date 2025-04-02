@@ -72,3 +72,9 @@ def delete_selected_products(request):
             Product.objects.filter(id__in=ids_list).delete()
             return HttpResponse("success")
     return HttpResponse("error")
+
+def delete_all_products(request):
+    if request.method == "POST":
+        Product.objects.all().delete()
+        return redirect('display_products')
+    return HttpResponse("error")
