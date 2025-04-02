@@ -40,7 +40,11 @@ def add_product(request):
     products = Product.objects.all()
     return render(request, 'add_product.html', {'products': products, 'message': message})
 
+@login_required
 def display_products(request):
+    if not request.user.is_staff: 
+        return redirect('login')
+
     products = Product.objects.all()
     return render(request, 'display_products.html', {'products': products})
 
