@@ -173,9 +173,7 @@
                     const modal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
                     modal.show();
 
-                    // Używamy funkcji "handler", aby potem móc usunąć zdarzenie i uniknąć wielokrotnego wywoływania
                     function handler() {
-                        // Tworzymy URL na podstawie placeholdera 0
                         let deleteUrl = "{% url 'delete_product' 0 %}";
                         deleteUrl = deleteUrl.replace("0", productId);
 
@@ -192,7 +190,6 @@
                                     alert("Błąd podczas usuwania!");
                                 }
                                 modal.hide();
-                                // Usuwamy zdarzenie, by uniknąć wielokrotnych wywołań
                                 document.getElementById("confirm-delete").removeEventListener("click", handler);
                             });
                     }
@@ -214,20 +211,29 @@
                     fetch("{% url 'delete_all_products' %}", {
                         method: "POST",
                         headers: {
-                            "X-CSRFToken": "{{ csrf_token }}"
+                            "X-CSRFToken": "{{ csrf_token }}",
+                            "Content-Type": "application/json"
                         }
-                    }).then(response => response.text())
+                    })
+                        .then(response => response.json()) 
                         .then(data => {
-                            if (data === "success") {
+                            if (data.status === "success") {
+                               
                                 document.querySelectorAll("tr[data-id]").forEach(row => row.remove());
-                                deleteButton.disabled = true;
+                                deleteButton.disabled = true; 
                             } else {
-                                alert("Błąd podczas usuwania!");
+                                alert("Błąd podczas usuwania produktów: " + data.message);
                             }
+                            modal.hide(); 
+                        })
+                        .catch(error => {
+                            console.error('Błąd:', error);
+                            alert("Wystąpił błąd podczas próby usunięcia produktów.");
                             modal.hide();
                         });
                 });
             });
+
         });
     </script>
 </body>

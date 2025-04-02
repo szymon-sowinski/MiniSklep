@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from .models import Product
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 
 def login_view(request):
     if request.method == 'POST':
@@ -81,6 +82,10 @@ def delete_selected_products(request):
 
 def delete_all_products(request):
     if request.method == "POST":
-        Product.objects.all().delete()
-        return redirect('display_products')
-    return HttpResponse("error")
+        try:
+            Product.objects.all().delete()
+            return JsonResponse({"status": "success"})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+
