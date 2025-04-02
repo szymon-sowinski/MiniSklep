@@ -28,16 +28,16 @@ def add_product(request):
     if not request.user.is_staff: 
         return redirect('login')
 
-    message = ''
     if request.method == 'POST':
         name = request.POST.get('name')
         price = request.POST.get('price')
         if name:
             Product.objects.create(name=name, price=price)
-            message = "Produkt został dodany pomyślnie!"
+            request.session['message'] = "Produkt został dodany pomyślnie!"
             return redirect('add_product')
 
     products = Product.objects.all()
+    message = request.session.pop('message', '')
     return render(request, 'add_product.html', {'products': products, 'message': message})
 
 @login_required
