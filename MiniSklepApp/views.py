@@ -62,3 +62,13 @@ def delete_product(request, product_id):
         return redirect('display_products') 
     except Product.DoesNotExist:
         return redirect('display_products')
+    
+@csrf_exempt
+def delete_selected_products(request):
+    if request.method == "POST":
+        ids = request.POST.get("ids", "")
+        if ids:
+            ids_list = ids.split(",")
+            Product.objects.filter(id__in=ids_list).delete()
+            return HttpResponse("success")
+    return HttpResponse("error")
