@@ -31,22 +31,23 @@
         {% endif %}
 
         <div class="card p-3 shadow-sm">
-            <table class="table table-striped table-hover">
+            <table class="table table-striped table-hover table-fixed">
                 <thead>
                     <tr>
-                        <th>Nazwa produktu</th>
-                        <th>Cena</th>
+                        <th class="w-75">Nazwa produktu</th> 
+                        <th class="w-25">Cena</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for product in products %}
                     <tr data-id="{{ product.id }}">
-                        <td contenteditable="true" class="editable" data-field="name">{{ product.name }}</td>
-                        <td contenteditable="true" class="editable" data-field="price">{{ product.price }} zł</td>
+                        <td contenteditable="true" class="editable w-75" data-field="name">{{ product.name }}</td>
+                        <td contenteditable="true" class="editable w-25" data-field="price">{{ product.price }} zł</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            
         </div>
     </div>
 </body>
