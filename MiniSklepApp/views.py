@@ -6,6 +6,7 @@ from .models import Product
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+import json
 
 def login_view(request):
     if request.method == 'POST':
@@ -53,32 +54,39 @@ def display_products(request):
 def update_product(request):
     if request.method == "POST":
         try:
-            product = Product.objects.get(id=request.POST["id"])
-            setattr(product, request.POST["field"], request.POST["value"])
+            data = json.loads(request.body)
+            product = Product.objects.get(id=data["id"])
+            setattr(product, data["field"], data["value"])
             product.save()
-            return HttpResponse("success")
-        except Exception:
-            return HttpResponse("error")
+            return JsonResponse({"status": "success"})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)})
+    return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
 
+@csrf_exempt
 def delete_product(request, product_id):
     if request.method == "POST":
         try:
             product = Product.objects.get(id=product_id)
             product.delete()
-            return HttpResponse("success")
+            return JsonResponse({"status": "success"})
         except Product.DoesNotExist:
-            return HttpResponse("error")
-    return HttpResponse("error")
+            return JsonResponse({"status": "error", "message": "Produkt nie istnieje"})
+    return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
     
 @csrf_exempt
 def delete_selected_products(request):
     if request.method == "POST":
-        ids = request.POST.get("ids", "")
-        if ids:
-            ids_list = ids.split(",")
-            Product.objects.filter(id__in=ids_list).delete()
-            return HttpResponse("success")
-    return HttpResponse("error")
+        try:
+            data = json.loads(request.body)
+            ids = data.get("ids", [])
+            if not isinstance(ids, list):
+                return JsonResponse({"status": "error", "message": "Invalid IDs format"})
+            Product.objects.filter(id__in=ids).delete()
+            return JsonResponse({"status": "success"})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)})
+    return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
 
 def delete_all_products(request):
     if request.method == "POST":

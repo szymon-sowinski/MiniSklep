@@ -87,22 +87,25 @@
         document.addEventListener("DOMContentLoaded", function () {
             document.querySelectorAll(".editable").forEach(cell => {
                 cell.addEventListener("blur", function () {
-                    let row = this.closest("tr");
-                    let productId = row.getAttribute("data-id");
-                    let field = this.getAttribute("data-field");
-                    let value = this.innerText.replace(" zł", "");
-
-                    let formData = new FormData();
-                    formData.append("id", productId);
-                    formData.append("field", field);
-                    formData.append("value", value);
+                    const row = this.closest("tr");
+                    const productId = row.getAttribute("data-id");
+                    const field = this.getAttribute("data-field");
+                    const value = this.innerText.replace(" zł", "");
 
                     fetch("{% url 'update_product' %}", {
                         method: "POST",
-                        body: formData
-                    }).then(response => response.text())
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify({
+                            id: productId,
+                            field: field,
+                            value: value
+                        })
+                    }).then(response => response.json())
                         .then(data => {
-                            if (data !== "success") {
+                            if (data.status !== "success") {
                                 alert("Błąd podczas zapisu!");
                             }
                         });
@@ -130,29 +133,27 @@
             });
 
             deleteButton.addEventListener("click", function () {
-                let selectedIds = Array.from(document.querySelectorAll(".row-checkbox:checked"))
+                const selectedIds = Array.from(document.querySelectorAll(".row-checkbox:checked"))
                     .map(cb => cb.closest("tr").getAttribute("data-id"));
 
                 if (selectedIds.length === 0) return;
 
                 document.getElementById("delete-message").textContent = "Czy na pewno chcesz usunąć wybrane produkty?";
-
                 const modal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
                 modal.show();
 
-                document.getElementById("confirm-delete").addEventListener("click", function () {
-                    let formData = new FormData();
-                    formData.append("ids", selectedIds.join(','));
-
+                document.getElementById("confirm-delete").addEventListener("click", function handler() {
                     fetch("{% url 'delete_selected_products' %}", {
                         method: "POST",
                         headers: {
+                            "Content-Type": "application/json",
                             "X-CSRFToken": "{{ csrf_token }}"
                         },
-                        body: formData
-                    }).then(response => response.text())
+                        body: JSON.stringify({ ids: selectedIds })
+                    })
+                        .then(res => res.json())
                         .then(data => {
-                            if (data === "success") {
+                            if (data.status === "success") {
                                 selectedIds.forEach(id => {
                                     document.querySelector(`tr[data-id='${id}']`).remove();
                                 });
@@ -161,30 +162,29 @@
                                 alert("Błąd podczas usuwania!");
                             }
                             modal.hide();
+                            document.getElementById("confirm-delete").removeEventListener("click", handler);
                         });
                 });
             });
 
             document.querySelectorAll(".delete-product").forEach(button => {
                 button.addEventListener("click", function () {
-                    let productId = this.getAttribute("data-id");
+                    const productId = this.getAttribute("data-id");
                     document.getElementById("delete-message").textContent = "Czy na pewno chcesz usunąć ten produkt?";
-
                     const modal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
                     modal.show();
 
                     function handler() {
-                        let deleteUrl = "{% url 'delete_product' 0 %}";
-                        deleteUrl = deleteUrl.replace("0", productId);
+                        const deleteUrl = "{% url 'delete_product' 0 %}".replace("0", productId);
 
                         fetch(deleteUrl, {
                             method: "POST",
                             headers: {
                                 "X-CSRFToken": "{{ csrf_token }}"
                             }
-                        }).then(response => response.text())
+                        }).then(res => res.json())
                             .then(data => {
-                                if (data === "success") {
+                                if (data.status === "success") {
                                     document.querySelector(`tr[data-id='${productId}']`).remove();
                                 } else {
                                     alert("Błąd podczas usuwania!");
@@ -198,44 +198,36 @@
                 });
             });
 
-
             deleteAllButton.addEventListener("click", function (event) {
                 event.preventDefault();
 
                 document.getElementById("delete-message").textContent = "Czy na pewno chcesz usunąć wszystkie produkty?";
-
                 const modal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
                 modal.show();
 
-                document.getElementById("confirm-delete").addEventListener("click", function () {
+                document.getElementById("confirm-delete").addEventListener("click", function handler() {
                     fetch("{% url 'delete_all_products' %}", {
                         method: "POST",
                         headers: {
-                            "X-CSRFToken": "{{ csrf_token }}",
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
                         }
-                    })
-                        .then(response => response.json()) 
+                    }).then(res => res.json())
                         .then(data => {
                             if (data.status === "success") {
-                               
                                 document.querySelectorAll("tr[data-id]").forEach(row => row.remove());
-                                deleteButton.disabled = true; 
+                                deleteButton.disabled = true;
                             } else {
-                                alert("Błąd podczas usuwania produktów: " + data.message);
+                                alert("Błąd podczas usuwania: " + data.message);
                             }
-                            modal.hide(); 
-                        })
-                        .catch(error => {
-                            console.error('Błąd:', error);
-                            alert("Wystąpił błąd podczas próby usunięcia produktów.");
                             modal.hide();
+                            document.getElementById("confirm-delete").removeEventListener("click", handler);
                         });
                 });
             });
-
         });
     </script>
+
 </body>
 
 </html>
